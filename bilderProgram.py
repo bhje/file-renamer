@@ -1,122 +1,11 @@
 import os
 import pandas as pd
+import csv
 from natsort import natsorted
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox, filedialog
 from tkinter import ttk
-
-""" def load_asset(path):
-    base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    assets = os.path.join(base, "assets")
-    return os.path.join(assets, path)
-
-canvas.place(x=0, y=0)
-
-canvas.create_text(
-    14,
-    387,
-    anchor="nw",
-    text="",
-    fill="#000000",
-    font=("Default Font", 12 * -1)
-)
-
-button_1_image = tk.PhotoImage(file=load_asset("1.png"))
-
-button_1 = tk.Button(
-    image=button_1_image,
-    relief="flat",
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_1 has been pressed!")
-)
-
-button_1.place(x=14, y=356, width=80, height=30)
-
-button_2_image = tk.PhotoImage(file=load_asset("2.png"))
-
-button_2 = tk.Button(
-    image=button_2_image,
-    relief="flat",
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_2 has been pressed!")
-)
-
-button_2.place(x=104, y=356, width=90, height=30)
-
-button_3_image = tk.PhotoImage(file=load_asset("3.png"))
-
-button_3 = tk.Button(
-    image=button_3_image,
-    relief="flat",
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_3 has been pressed!")
-)
-
-button_3.place(x=204, y=356, width=80, height=30)
-
-textbox_1 = tk.Entry(
-    bd=0,
-    bg="#000000",
-    fg="#ffffff",
-    insertbackground="#ffffff",
-    highlightthickness=0
-)
-
-textbox_1.place(x=512, y=30, width=498, height=325)
-
-textbox_2 = tk.Entry(
-    bd=0,
-    bg="#000000",
-    fg="#ffffff",
-    insertbackground="#ffffff",
-    highlightthickness=0
-)
-
-textbox_2.place(x=14, y=30, width=498, height=325)
-
-button_4_image = tk.PhotoImage(file=load_asset("4.png"))
-
-button_4 = tk.Button(
-    image=button_4_image,
-    relief="flat",
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_4 has been pressed!")
-)
-
-button_4.place(x=14, y=0, width=80, height=30)
-
-button_5_image = tk.PhotoImage(file=load_asset("5.png"))
-
-button_5 = tk.Button(
-    image=button_5_image,
-    relief="flat",
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_5 has been pressed!")
-)
-
-button_5.place(x=104, y=0, width=80, height=30)
-
-button_6_image = tk.PhotoImage(file=load_asset("6.png"))
-
-button_6 = tk.Button(
-    image=button_6_image,
-    relief="flat",
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_6 has been pressed!")
-)
-
-button_6.place(x=194, y=0, width=88, height=30)
-
-
-window.resizable(False, False)
-window.mainloop() """
 
 
 def run_renamer(csv_path, images_folder, output_folder):
@@ -159,6 +48,8 @@ def select_csv():
     entry_csv.delete(0, tk.END)
     entry_csv.insert(0, path)
 
+    load_to_table(path, tree)
+
 def select_in_folder():
     path = filedialog.askdirectory()
     entry_img.delete(0, tk.END)
@@ -178,6 +69,22 @@ def start_process():
         run_renamer(csv, img, out)
     else:
         messagebox.showwarning("Warning", "Please choose all paths.")
+
+def load_to_table(csv_path, tree):
+    try:
+        with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
+            reader = csv.reader(file)
+            data = list(reader)
+    except FileNotFoundError:
+        messagebox.showerror("Error", f"Could not load table: \nFile not found: {csv_path}")
+
+    for item in tree.get_children():
+        tree.delete(item)
+
+    for row in data:
+        tree.insert("", "end", values=row)
+
+    print("Table loaded with new data.")
 
 # Create window
 root = tk.Tk()
@@ -235,7 +142,6 @@ tree = ttk.Treeview(table_window, columns=columns, show='headings')
 tree.heading("index", text="File #")
 tree.heading("current_name", text="Current Name")
 tree.heading("new_name", text="New Name")
-
 tree.column("index", width=20, anchor='center')
 tree.column("current_name", width=200, anchor='center')
 tree.column("new_name", width=200, anchor='center')
