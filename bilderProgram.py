@@ -8,6 +8,7 @@ from tkinter import messagebox, filedialog
 from tkinter import ttk
 
 
+
 def run_renamer(csv_path, images_folder, output_folder):
     try:
         # Create output folder if one does not exist
@@ -48,7 +49,7 @@ def select_csv():
     entry_csv.delete(0, tk.END)
     entry_csv.insert(0, path)
 
-    load_to_table(path, tree)
+    csv_to_table(path, tree)
 
 def select_in_folder():
     path = filedialog.askdirectory()
@@ -70,40 +71,52 @@ def start_process():
     else:
         messagebox.showwarning("Warning", "Please choose all paths.")
 
-def load_to_table(csv_path, tree):
+# Load table with data
+def load_table(data, tree, col_idx_curr=0, col_idx_new=1):
+    for item in tree.get_children():
+        tree.delete(item)
+
+    for i, row in enumerate(data[1:], start=1):
+        try:
+            file_num = str(i)
+
+            if len(row) > max(col_idx_curr, col_idx_new):
+                current_name = row[col_idx_curr]
+                new_name = row[col_idx_new]
+                tree.insert("", "end", values=(file_num, current_name, new_name))
+
+        except IndexError:
+            tree.insert("", "end", values=row)
+
+# Load table from csv path
+def csv_to_table(csv_path, tree):
     try:
         with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
             reader = csv.reader(file)
             data = list(reader)
     except FileNotFoundError:
-        messagebox.showerror("Error", f"Could not load table: \nFile not found: {csv_path}")
+        messagebox.showerror("Error", f"File not found: {csv_path}")
 
-    for item in tree.get_children():
-        tree.delete(item)
-
-    for row in data:
-        tree.insert("", "end", values=row)
+    load_table(data, tree)
 
     print("Table loaded with new data.")
 
+# Load table from drag and drop
+
 # Create window
 root = tk.Tk()
-root.title("Photo renamer")
+root.title("File renamer")
 root.geometry("1024x640")
-
 
 #Menubar
 menubar = Menu(root)
 
-#File button
+#Menubar file button
 file = Menu(menubar, tearoff=0)
 menubar.add_cascade(label='File', menu = file)
 file.add_command(label = 'Choose Input Folder', command=select_in_folder)
 file.add_command(label = 'Choose Output Folder', command=select_out_folder)
 file.add_command(label = 'Choose CSV', command=select_csv)
-
-
-
 
 # CSV chooser
 tk.Label(root, text="Choose CSV-file:").pack(pady=5)
@@ -112,8 +125,6 @@ entry_csv.pack()
 tk.Button(root, text="Choose...", command=select_csv).pack(pady=2)
 
 # Input images folder chooser
-button_1 = tk.Button(root, text='Choose Input')
-
 tk.Label(root, text="Choose input images folder:").pack(pady=5)
 entry_img = tk.Entry(root, width=50)
 entry_img.pack()
@@ -128,6 +139,20 @@ tk.Button(root, text="Choose...", command=select_csv).pack(pady=2)
 # Run-button
 tk.Button(root, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process).pack(pady=20)
 
+# Drop-down headings
+headings_frame = tk.Frame(root, height=30, bg="#B6C5CF")
+headings_frame.pack(expand=True, fill='x')
+
+heading_file_num = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
+heading_current_name = ttk.Combobox(headings_frame, values=["Current name"], font=("Roboto", 10, "bold"))
+heading_current_name.current(0)
+heading_new_name = ttk.Combobox(headings_frame, values=["New name"], font=("Roboto", 10, "bold"))
+heading_new_name.current(0)
+
+heading_file_num.pack(side='left', padx=10, pady=5)
+heading_current_name.pack(side='left', padx=10, pady=5)
+heading_new_name.pack(side='left', padx=10, pady=5)
+
 # Table-window
 table_window = tk.Frame(root, bg="#ADBBC4")
 table_window.pack(expand=True, fill='both')
@@ -139,12 +164,12 @@ style.map('Treeview', background=[('selected', '#347083')])
 columns = ("index", "current_name", "new_name")
 tree = ttk.Treeview(table_window, columns=columns, show='headings')
 
-tree.heading("index", text="File #")
-tree.heading("current_name", text="Current Name")
-tree.heading("new_name", text="New Name")
-tree.column("index", width=20, anchor='center')
-tree.column("current_name", width=200, anchor='center')
-tree.column("new_name", width=200, anchor='center')
+tree.column("index", width=100, anchor='center', stretch=False)
+tree.column("current_name", width=200, anchor='center', stretch=True)
+tree.column("new_name", width=200, anchor='center', stretch=True)
+tree.heading("index", text="#")
+tree.heading("current_name", text="")
+tree.heading("new_name", text="")
 
 scrollbar = ttk.Scrollbar(table_window, orient="vertical", command=tree.yview)
 tree.configure(yscrollcommand=scrollbar.set)
