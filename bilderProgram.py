@@ -6,8 +6,8 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox, filedialog
 from tkinter import ttk
-
-
+import tkinterdnd2
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 def run_renamer(csv_path, images_folder, output_folder):
     try:
@@ -102,9 +102,22 @@ def csv_to_table(csv_path, tree):
     print("Table loaded with new data.")
 
 # Load table from drag and drop
+def drop(event):
+    file_path = event.data
+    if file_path.endswith('.csv'):
+        print("Dropped csv-file: ", file_path)
+        entry_csv.delete(0, tk.END)
+        entry_csv.insert(0, file_path)
+        csv_to_table(file_path, tree)
+    elif os.path.isdir(file_path):
+        print("Dropped folder: ", file_path)
+        entry_img.delete(0, tk.END)
+        entry_img.insert(0, file_path)
+    else:
+        messagebox.showerror("Error", "Please drop a CSV file or an image folder.")
 
 # Create window
-root = tk.Tk()
+root = TkinterDnD.Tk()
 root.title("File renamer")
 root.geometry("1024x640")
 
@@ -139,19 +152,26 @@ tk.Button(root, text="Choose...", command=select_csv).pack(pady=2)
 # Run-button
 tk.Button(root, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process).pack(pady=20)
 
+# Drop frame
+drop_frame = tk.Label(root, text="Drag and drop CSV file or image folder here", bg="#B6C5CF", font=("Roboto", 12), width=40, height=4)
+drop_frame.pack(pady=20, expand=True, fill='both')
+
+drop_frame.drop_target_register(DND_FILES)
+drop_frame.dnd_bind('<<Drop>>', drop)
+
 # Drop-down headings
 headings_frame = tk.Frame(root, height=30, bg="#B6C5CF")
 headings_frame.pack(expand=True, fill='x')
 
-heading_file_num = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
-heading_current_name = ttk.Combobox(headings_frame, values=["Current name"], font=("Roboto", 10, "bold"))
-heading_current_name.current(0)
-heading_new_name = ttk.Combobox(headings_frame, values=["New name"], font=("Roboto", 10, "bold"))
-heading_new_name.current(0)
+h1 = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
+h2 = ttk.Combobox(headings_frame, values=["Current name (Choose column)"], font=("Roboto", 10, "bold"), width=30)
+h2.current(0)
+h3 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30)
+h3.current(0)
 
-heading_file_num.pack(side='left', padx=10, pady=5)
-heading_current_name.pack(side='left', padx=10, pady=5)
-heading_new_name.pack(side='left', padx=10, pady=5)
+h1.grid(row=0, column=0, padx=(10, 25), pady=5)
+h2.grid(row=0, column=1, padx=(10, 210), pady=5)
+h3.grid(row=0, column=2, pady=5)
 
 # Table-window
 table_window = tk.Frame(root, bg="#ADBBC4")
@@ -164,7 +184,7 @@ style.map('Treeview', background=[('selected', '#347083')])
 columns = ("index", "current_name", "new_name")
 tree = ttk.Treeview(table_window, columns=columns, show='headings')
 
-tree.column("index", width=100, anchor='center', stretch=False)
+tree.column("index", width=120, anchor='center', stretch=False)
 tree.column("current_name", width=200, anchor='center', stretch=True)
 tree.column("new_name", width=200, anchor='center', stretch=True)
 tree.heading("index", text="#")
