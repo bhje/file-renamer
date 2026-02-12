@@ -96,8 +96,10 @@ def csv_to_table(csv_path, tree):
             data = list(reader)
     except FileNotFoundError:
         messagebox.showerror("Error", f"File not found: {csv_path}")
-
+    
+    print(data)
     load_table(data, tree)
+    update_dropdowns(data)
 
     print("Table loaded with new data.")
 
@@ -115,6 +117,13 @@ def drop(event):
         entry_img.insert(0, file_path)
     else:
         messagebox.showerror("Error", "Please drop a CSV file or an image folder.")
+
+# Column names to drop-downs
+def update_dropdowns(data):
+    columns = data[0]
+
+    h2['values'] = columns
+    h3['values'] = columns
 
 # Create window
 root = TkinterDnD.Tk()
