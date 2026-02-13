@@ -9,34 +9,53 @@ from tkinter import ttk
 import tkinterdnd2
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
-def run_renamer(csv_path, images_folder, output_folder):
+def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
+    csv_path = csv_path_entry.get()
+    images_folder = images_folder_entry.get()
+    output_folder = output_folder_entry.get()
+
+    col_idx_curr = h2.current()
+    col_idx_new = h3.current()
+    
+    if col_idx_curr < 0 or col_idx_new < 0:
+        messagebox.showwarning("Warning", "Please select columns for current and new names.")
+        return
+
     try:
         # Create output folder if one does not exist
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
-        csvfName = pd.read_csv(csv_path, usecols=[3, 4])
+        with open(csv_path, mode='r', encoding='utf-8', newline='') as file:
+            reader = csv.reader(file)
+            data = list(reader)
 
         count = 0
 
-        for index, row in csvfName.iterrows():
-            name = str(row[0]+row[1])
-            nameNoSpace = name.replace(" ", "")
+        dir_list = os.listdir(images_folder)
+        sortedlist = natsorted(dir_list)
 
-            dir_list = os.listdir(images_folder)
-            sortedlist = natsorted(dir_list)
-
-            target_filename = str(index) + ".jpg"
+        for index, row in enumerate(data[1:], start=1):
+            if index > len(sortedlist):
+                print(f"Index {index} exceeds the number of files in the images folder. Stopping process.")
+                break
             
+            try:
+                target_filename = row[col_idx_curr]
 
-            if len(sortedlist) > 0:
-                if sortedlist[0] == target_filename:
-                    src = os.path.join(images_folder, sortedlist[0])
-                    dst = os.path.join(output_folder, nameNoSpace + ".jpg")
-                    os.rename(src, dst)
-                    count += 1
-                else:
-                    print(f"Skipped index {index}: {sortedlist[0]} != {target_filename}")
+                if not target_filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif')):
+                    target_filename += os.path.splitext(sortedlist[index-1])[1]
+
+                old_filename = sortedlist[index-1]
+
+                src = os.path.join(images_folder, old_filename)
+                dst = os.path.join(output_folder, target_filename)
+                
+                os.rename(src, dst)
+                count += 1
+
+            except IndexError:
+                continue
 
         messagebox.showinfo("Done!", f"The process has completed. \n{count} photos were renamed.")
 
@@ -131,17 +150,17 @@ def update_dropdowns(data):
 
 # Update table when drop-down selection changes
 def update_table(event):
-    col_idx_curr = h2.current()
-    col_idx_new = h3.current()
+    curr_idx = h2.current()
+    new_idx = h3.current()
 
-    if col_idx_curr >= 0 or col_idx_new >= 0:
+    if curr_idx >= 0 or new_idx >= 0:
         csv_path = entry_csv.get()
         if csv_path:
             try:
                 with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
                     reader = csv.reader(file)
                     data = list(reader)
-                load_table(data, tree, col_idx_curr, col_idx_new)
+                load_table(data, tree, curr_idx, new_idx)
             except FileNotFoundError:
                 messagebox.showerror("Error", f"File not found: {csv_path}")
         else:
@@ -208,17 +227,21 @@ paned_window.add(table_window)
 
 # Drop-down headings
 headings_frame = tk.Frame(table_window, height=30, bg="#B6C5CF")
-headings_frame.pack(expand=False, fill='x')
+headings_frame.pack(fill='x')
+
+headings_frame.grid_columnconfigure(0, weight=0, minsize=120)
+headings_frame.grid_columnconfigure(1, weight=1)
+headings_frame.grid_columnconfigure(2, weight=1)
 
 h1 = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
-h2 = ttk.Combobox(headings_frame, values=["Current name (Choose column)"], font=("Roboto", 10, "bold"), width=30)
+h2 = ttk.Combobox(headings_frame, values=["Current name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
 h2.current(0)
-h3 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30)
+h3 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
 h3.current(0)
 
-h1.grid(row=0, column=0, padx=(10, 25), pady=5)
-h2.grid(row=0, column=1, padx=(10, 210), pady=5)
-h3.grid(row=0, column=2, pady=5)
+h1.grid(row=0, column=0, padx=(10, 25), pady=5, sticky='ew')
+h2.grid(row=0, column=1, padx=10, pady=5, sticky='w')
+h3.grid(row=0, column=2, padx=(0, 20), pady=5, sticky='w')
 
 h2.bind("<<ComboboxSelected>>", update_table)
 h3.bind("<<ComboboxSelected>>", update_table)
