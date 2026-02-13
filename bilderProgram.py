@@ -72,11 +72,16 @@ def start_process():
         messagebox.showwarning("Warning", "Please choose all paths.")
 
 # Load table with data
-def load_table(data, tree, col_idx_curr=0, col_idx_new=1):
+def load_table(data, tree, col_idx_curr = 0, col_idx_new = 1):
     for item in tree.get_children():
         tree.delete(item)
 
-    for i, row in enumerate(data[1:], start=1):
+    if h2.get() == "Current name (Choose column)":
+        col_idx_curr = 0
+    if h3.get() == "New name (Choose column)":
+        col_idx_new = 1
+
+    for i, row in enumerate(data[1:], start = 1):
         try:
             file_num = str(i)
 
@@ -97,7 +102,6 @@ def csv_to_table(csv_path, tree):
     except FileNotFoundError:
         messagebox.showerror("Error", f"File not found: {csv_path}")
     
-    print(data)
     load_table(data, tree)
     update_dropdowns(data)
 
@@ -125,10 +129,32 @@ def update_dropdowns(data):
     h2['values'] = columns
     h3['values'] = columns
 
+# Update table when drop-down selection changes
+def update_table(event):
+    col_idx_curr = h2.current()
+    col_idx_new = h3.current()
+
+    if col_idx_curr >= 0 or col_idx_new >= 0:
+        csv_path = entry_csv.get()
+        if csv_path:
+            try:
+                with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
+                    reader = csv.reader(file)
+                    data = list(reader)
+                load_table(data, tree, col_idx_curr, col_idx_new)
+            except FileNotFoundError:
+                messagebox.showerror("Error", f"File not found: {csv_path}")
+        else:
+            messagebox.showwarning("Warning", "Please choose a CSV file first.")
+
 # Create window
 root = TkinterDnD.Tk()
 root.title("File renamer")
 root.geometry("1024x640")
+
+# Paned window
+paned_window = ttk.Panedwindow(root, orient=tk.VERTICAL)
+paned_window.pack(fill=tk.BOTH, expand=True)
 
 #Menubar
 menubar = Menu(root)
@@ -140,37 +166,49 @@ file.add_command(label = 'Choose Input Folder', command=select_in_folder)
 file.add_command(label = 'Choose Output Folder', command=select_out_folder)
 file.add_command(label = 'Choose CSV', command=select_csv)
 
+# Chooser Frame
+chooser_frame = tk.Frame(paned_window, height=150, bg="#F0F0F0")
+chooser_frame.pack(expand=False, fill='x')
+
+paned_window.add(chooser_frame)
+
 # CSV chooser
-tk.Label(root, text="Choose CSV-file:").pack(pady=5)
-entry_csv = tk.Entry(root, width=50)
+tk.Label(chooser_frame, text="Choose CSV-file:").pack(pady=5)
+entry_csv = tk.Entry(chooser_frame, width=50)
 entry_csv.pack()
-tk.Button(root, text="Choose...", command=select_csv).pack(pady=2)
+tk.Button(chooser_frame, text="Choose...", command=select_csv).pack(pady=2)
 
 # Input images folder chooser
-tk.Label(root, text="Choose input images folder:").pack(pady=5)
-entry_img = tk.Entry(root, width=50)
+tk.Label(chooser_frame, text="Choose input images folder:").pack(pady=5)
+entry_img = tk.Entry(chooser_frame, width=50)
 entry_img.pack()
-tk.Button(root, text="Choose...", command=select_csv).pack(pady=2)
+tk.Button(chooser_frame, text="Choose...", command=select_in_folder).pack(pady=2)
 
 # Output images folder chooser
-tk.Label(root, text="Choose output folder:").pack(pady=5)
-entry_out = tk.Entry(root, width=50)
+tk.Label(chooser_frame, text="Choose output folder:").pack(pady=5)
+entry_out = tk.Entry(chooser_frame, width=50)
 entry_out.pack()
-tk.Button(root, text="Choose...", command=select_csv).pack(pady=2)
+tk.Button(chooser_frame, text="Choose...", command=select_out_folder).pack(pady=2)
 
 # Run-button
-tk.Button(root, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process).pack(pady=20)
+tk.Button(chooser_frame, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process).pack(pady=20)
 
 # Drop frame
-drop_frame = tk.Label(root, text="Drag and drop CSV file or image folder here", bg="#B6C5CF", font=("Roboto", 12), width=40, height=4)
-drop_frame.pack(pady=20, expand=True, fill='both')
+drop_frame = tk.Label(chooser_frame, text="Drag and drop CSV file or image folder here", bg="#B6C5CF", font=("Roboto", 12), width=40, height=4, border = 2, relief="groove")
+drop_frame.pack(expand=True, fill='both')
 
 drop_frame.drop_target_register(DND_FILES)
 drop_frame.dnd_bind('<<Drop>>', drop)
 
+# Table Frame
+table_window = tk.Frame(paned_window, bg="#ADBBC4")
+table_window.pack(expand=True, fill='both')
+
+paned_window.add(table_window)
+
 # Drop-down headings
-headings_frame = tk.Frame(root, height=30, bg="#B6C5CF")
-headings_frame.pack(expand=True, fill='x')
+headings_frame = tk.Frame(table_window, height=30, bg="#B6C5CF")
+headings_frame.pack(expand=False, fill='x')
 
 h1 = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
 h2 = ttk.Combobox(headings_frame, values=["Current name (Choose column)"], font=("Roboto", 10, "bold"), width=30)
@@ -182,10 +220,10 @@ h1.grid(row=0, column=0, padx=(10, 25), pady=5)
 h2.grid(row=0, column=1, padx=(10, 210), pady=5)
 h3.grid(row=0, column=2, pady=5)
 
-# Table-window
-table_window = tk.Frame(root, bg="#ADBBC4")
-table_window.pack(expand=True, fill='both')
+h2.bind("<<ComboboxSelected>>", update_table)
+h3.bind("<<ComboboxSelected>>", update_table)
 
+# Table
 style = ttk.Style()
 style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
 style.map('Treeview', background=[('selected', '#347083')])
@@ -197,8 +235,8 @@ tree.column("index", width=120, anchor='center', stretch=False)
 tree.column("current_name", width=200, anchor='center', stretch=True)
 tree.column("new_name", width=200, anchor='center', stretch=True)
 tree.heading("index", text="#")
-tree.heading("current_name", text="")
-tree.heading("new_name", text="")
+tree.heading("current_name", text="Current name")
+tree.heading("new_name", text="New name")
 
 scrollbar = ttk.Scrollbar(table_window, orient="vertical", command=tree.yview)
 tree.configure(yscrollcommand=scrollbar.set)
