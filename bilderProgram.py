@@ -75,6 +75,8 @@ def select_in_folder():
     entry_img.delete(0, tk.END)
     entry_img.insert(0, path)
 
+    update_table()
+
 def select_out_folder():
     path = filedialog.askdirectory()
     entry_out.delete(0, tk.END)
@@ -91,26 +93,43 @@ def start_process():
         messagebox.showwarning("Warning", "Please choose all paths.")
 
 # Load table with data
-def load_table(data, tree, col_idx_curr = 0, col_idx_new = 1):
+def load_table(csv_data, img_data, tree, col_idx_new = 1):
     for item in tree.get_children():
         tree.delete(item)
 
-    if h2.get() == "Current name (Choose column)":
-        col_idx_curr = 0
     if h3.get() == "New name (Choose column)":
         col_idx_new = 1
 
-    for i, row in enumerate(data[1:], start = 1):
+    file_list = []
+    if img_data and os.path.exists(img_data):
         try:
-            file_num = str(i)
+            files = os.listdir(img_data)
+            sorted_files = natsorted(files)
+            file_list = sorted_files
+        except Exception:
+            file_list = []
 
-            if len(row) > max(col_idx_curr, col_idx_new):
-                current_name = row[col_idx_curr]
-                new_name = row[col_idx_new]
-                tree.insert("", "end", values=(file_num, current_name, new_name))
+    csv_rows = csv_data[1:] if csv_data else []
+    max_rows = max(len(csv_rows), len(file_list))
 
-        except IndexError:
-            tree.insert("", "end", values=row)
+    for i in range(max_rows):
+        file_num = str(i + 1)
+        
+        if i < len(file_list):
+            curr_name = file_list[i]
+        else:
+            curr_name = "No file data"
+
+        if i < len(csv_rows):
+            try:
+                row = csv_rows[i]
+                new_name = row[col_idx_new] if col_idx_new < len(row) else ""
+            except IndexError:
+                new_name = "Something wrong with the csv data"
+        else:
+            new_name = "No csv data"
+
+        tree.insert("", "end", values=(file_num, curr_name, new_name))
 
 # Load table from csv path
 def csv_to_table(csv_path, tree):
@@ -121,10 +140,27 @@ def csv_to_table(csv_path, tree):
     except FileNotFoundError:
         messagebox.showerror("Error", f"File not found: {csv_path}")
     
-    load_table(data, tree)
+    load_table(data, None, tree)
     update_dropdowns(data)
 
-    print("Table loaded with new data.")
+    print("Table loaded with new csv data.")
+
+# Load table from image folder path
+def img_to_table(folder_path, tree):
+    try:
+        files = os.listdir(folder_path)
+        sorted_files = natsorted(files)
+    except FileNotFoundError:
+        messagebox.showerror("Error", f"Folder not found: {folder_path}")
+    
+    data = [["Current name"]]
+    for file in sorted_files:
+        data.append([file])
+
+    load_table(None, data, tree)
+    update_dropdowns(data)
+
+    print("Table loaded with new folder data.")
 
 # Load table from drag and drop
 def drop(event):
@@ -138,33 +174,34 @@ def drop(event):
         print("Dropped folder: ", file_path)
         entry_img.delete(0, tk.END)
         entry_img.insert(0, file_path)
+        img_to_table(file_path, tree)
     else:
         messagebox.showerror("Error", "Please drop a CSV file or an image folder.")
 
 # Column names to drop-downs
 def update_dropdowns(data):
     columns = data[0]
-
-    h2['values'] = columns
     h3['values'] = columns
 
 # Update table when drop-down selection changes
-def update_table(event):
-    curr_idx = h2.current()
+def update_table(event=None):
     new_idx = h3.current()
 
-    if curr_idx >= 0 or new_idx >= 0:
+    if new_idx >= 0:
         csv_path = entry_csv.get()
-        if csv_path:
+        folder_path = entry_img.get()
+
+        csv_data = []
+
+        if csv_path and os.path.exists(csv_path):
             try:
                 with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
                     reader = csv.reader(file)
-                    data = list(reader)
-                load_table(data, tree, curr_idx, new_idx)
+                    csv_data = list(reader)
             except FileNotFoundError:
                 messagebox.showerror("Error", f"File not found: {csv_path}")
-        else:
-            messagebox.showwarning("Warning", "Please choose a CSV file first.")
+        
+        load_table(csv_data, folder_path, tree, col_idx_new=new_idx)
 
 # Create window
 root = TkinterDnD.Tk()
@@ -234,7 +271,7 @@ headings_frame.grid_columnconfigure(1, weight=1)
 headings_frame.grid_columnconfigure(2, weight=1)
 
 h1 = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
-h2 = ttk.Combobox(headings_frame, values=["Current name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
+h2 = ttk.Combobox(headings_frame, values=["Files from input folder"], font=("Roboto", 10, "bold"), width=30, state="disabled")
 h2.current(0)
 h3 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
 h3.current(0)
@@ -243,7 +280,6 @@ h1.grid(row=0, column=0, padx=(10, 25), pady=5, sticky='ew')
 h2.grid(row=0, column=1, padx=10, pady=5, sticky='w')
 h3.grid(row=0, column=2, padx=(0, 20), pady=5, sticky='w')
 
-h2.bind("<<ComboboxSelected>>", update_table)
 h3.bind("<<ComboboxSelected>>", update_table)
 
 # Table
