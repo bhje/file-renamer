@@ -176,9 +176,17 @@ def drop(event):
         csv_to_table(file_path, tree)
     elif os.path.isdir(file_path):
         print("Dropped folder: ", file_path)
-        entry_img.delete(0, tk.END)
-        entry_img.insert(0, file_path)
-        img_to_table(file_path, tree)
+        if not os.listdir(file_path):
+            entry_out.delete(0, tk.END)
+            entry_out.insert(0, file_path)
+        else: 
+            entry_img.delete(0, tk.END)
+            entry_img.insert(0, file_path)
+            img_to_table(file_path, tree)
+            if not entry_out.get():
+                entry_out.delete(0, tk.END)
+                entry_out.insert(0, file_path)
+                messagebox.showinfo("Info", "Output folder set to the same as input folder since no output folder was chosen.")
     else:
         messagebox.showerror("Error", "Please drop a CSV file or an image folder.")
 
