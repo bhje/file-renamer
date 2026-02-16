@@ -1,12 +1,10 @@
 import os
-import pandas as pd
 import csv
 from natsort import natsorted
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox, filedialog
 from tkinter import ttk
-import tkinterdnd2
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import shutil
 
@@ -190,6 +188,39 @@ def drop(event):
     else:
         messagebox.showerror("Error", "Please drop a CSV file or an image folder.")
 
+# Apply serialize function to table
+def apply_serialize(start_num, increment):
+    for item in tree.get_children():
+        index = tree.item(item, "values")[0]
+        new_name = f"{start_num + (int(index) - 1) * increment}"
+        tree.set(item, column="new_name", value=new_name)
+
+# Apply insert function to table
+def apply_insert(text, position):
+    for item in tree.get_children():
+        current_name = tree.item(item, "values")[1]
+        if position == "start":
+            new_name = text + current_name
+        elif position == "end":
+            new_name = current_name + text
+        else:
+            new_name = current_name
+        tree.set(item, column="new_name", value=new_name)
+
+# Apply remove function to table
+def apply_remove(text):
+    for item in tree.get_children():
+        current_name = tree.item(item, "values")[1]
+        new_name = current_name.replace(text, "")
+        tree.set(item, column="new_name", value=new_name)
+
+# Apply replace function to table
+def apply_replace(find_text, replace_text):
+    for item in tree.get_children():
+        current_name = tree.item(item, "values")[1]
+        new_name = current_name.replace(find_text, replace_text)
+        tree.set(item, column="new_name", value=new_name)
+
 # Column names to drop-downs
 def update_dropdowns(data):
     columns = data[0]
@@ -224,15 +255,86 @@ root.geometry("1024x640")
 paned_window = ttk.Panedwindow(root, orient=tk.VERTICAL)
 paned_window.pack(fill=tk.BOTH, expand=True)
 
-#Menubar
+# Menubar
 menubar = Menu(root)
 
-#Menubar file button
+# Menubar file button
 file = Menu(menubar, tearoff=0)
 menubar.add_cascade(label='File', menu = file)
 file.add_command(label = 'Choose Input Folder', command=select_in_folder)
 file.add_command(label = 'Choose Output Folder', command=select_out_folder)
 file.add_command(label = 'Choose CSV', command=select_csv)
+
+# Menubar function button
+function = Menu(menubar, tearoff=0)
+menubar.add_cascade(label='Function', menu = function)
+function.add_command(label='Serialize', command=lambda: open_serialize_window())
+function.add_command(label='Insert', command=lambda: open_insert_window())
+function.add_command(label='Remove', command=lambda: open_remove_window())
+function.add_command(label='Replace', command=lambda: open_replace_window())
+
+# Serialize window
+def open_serialize_window():
+    serialize_window = tk.Toplevel(root)
+    serialize_window.title("Serialize")
+    serialize_window.geometry("600x400")
+
+    tk.Label(serialize_window, text="Start number:").pack(pady=10)
+    start_entry = tk.Entry(serialize_window, width=30)
+    start_entry.pack(pady=5)
+
+    tk.Label(serialize_window, text="Increment:").pack(pady=10)
+    increment_entry = tk.Entry(serialize_window, width=30)
+    increment_entry.pack(pady=5)
+
+    tk.Button(serialize_window, text="Apply", command=lambda: apply_serialize(int(start_entry.get()), int(increment_entry.get()))).pack(pady=20)
+
+# Insert window
+def open_insert_window():
+    insert_window = tk.Toplevel(root)
+    insert_window.title("Insert")
+    insert_window.geometry("600x400")
+
+    tk.Label(insert_window, text="Text to insert:").pack(pady=10)
+    text_entry = tk.Entry(insert_window, width=30)
+    text_entry.pack(pady=5)
+    tk.Label(insert_window, text="Position:").pack(pady=10)
+
+    position_var = tk.StringVar(value="start")
+    tk.Radiobutton(insert_window, text="Start", variable=position_var, value="start").pack(pady=5)
+    tk.Radiobutton(insert_window, text="End", variable=position_var, value="end").pack(pady=5)
+
+    tk.Button(insert_window, text="Apply", command=lambda: apply_insert(text_entry.get(), position_var.get())).pack(pady=20)
+
+# Remove window
+def open_remove_window():
+    remove_window = tk.Toplevel(root)
+    remove_window.title("Remove")
+    remove_window.geometry("600x400")
+    
+    tk.Label(remove_window, text="Text to remove:").pack(pady=10)
+    text_entry = tk.Entry(remove_window, width=30)
+    text_entry.pack(pady=5)
+
+    tk.Button(remove_window, text="Apply", command=lambda: apply_remove(text_entry.get())).pack(pady=20)
+
+# Replace window
+def open_replace_window():
+    replace_window = tk.Toplevel(root)
+    replace_window.title("Replace")
+    replace_window.geometry("600x400")
+
+    find_label = tk.Label(replace_window, text="Find:")
+    find_label.pack(pady=10)
+    find_entry = tk.Entry(replace_window, width=30)
+    find_entry.pack(pady=5)
+
+    replace_label = tk.Label(replace_window, text="Replace with:")
+    replace_label.pack(pady=10)
+    replace_entry = tk.Entry(replace_window, width=30)
+    replace_entry.pack(pady=5)
+
+    tk.Button(replace_window, text="Apply", command=lambda: apply_replace(find_entry.get(), replace_entry.get())).pack(pady=20)
 
 # Chooser Frame
 chooser_frame = tk.Frame(paned_window, height=150, bg="#F0F0F0")
