@@ -8,17 +8,18 @@ from tkinter import messagebox, filedialog
 from tkinter import ttk
 import tkinterdnd2
 from tkinterdnd2 import DND_FILES, TkinterDnD
+import shutil
 
 def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
-    csv_path = csv_path_entry.get()
-    images_folder = images_folder_entry.get()
-    output_folder = output_folder_entry.get()
+    csv_path = csv_path_entry.get().strip()
+    images_folder = images_folder_entry.get().strip()
+    output_folder = output_folder_entry.get().strip()
 
-    col_idx_curr = h2.current()
     col_idx_new = h3.current()
+    if col_idx_new == -1: col_idx_curr = 1
     
-    if col_idx_curr < 0 or col_idx_new < 0:
-        messagebox.showwarning("Warning", "Please select columns for current and new names.")
+    if col_idx_new < 0:
+        messagebox.showwarning("Warning", "Please select columns for new names.")
         return
 
     try:
@@ -41,7 +42,7 @@ def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
                 break
             
             try:
-                target_filename = row[col_idx_curr]
+                target_filename = row[col_idx_new]
 
                 if not target_filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif')):
                     target_filename += os.path.splitext(sortedlist[index-1])[1]
@@ -51,7 +52,11 @@ def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
                 src = os.path.join(images_folder, old_filename)
                 dst = os.path.join(output_folder, target_filename)
                 
-                os.rename(src, dst)
+                if images_folder != output_folder:
+                    shutil.copy2(src, dst)
+                else:
+                    os.rename(src, dst)
+    
                 count += 1
 
             except IndexError:
