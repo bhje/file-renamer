@@ -80,7 +80,7 @@ def select_in_folder():
     entry_img.delete(0, tk.END)
     entry_img.insert(0, path)
 
-    update_table()
+    img_to_table(path, tree)
 
 def select_out_folder():
     path = filedialog.askdirectory()
@@ -145,8 +145,8 @@ def csv_to_table(csv_path, tree):
     except FileNotFoundError:
         messagebox.showerror("Error", f"File not found: {csv_path}")
     
-    load_table(data, None, tree)
     update_dropdowns(data)
+    update_table()
 
     print("Table loaded with new csv data.")
 
@@ -162,8 +162,7 @@ def img_to_table(folder_path, tree):
     for file in sorted_files:
         data.append([file])
 
-    load_table(None, data, tree)
-    update_dropdowns(data)
+    update_table()
 
     print("Table loaded with new folder data.")
 
@@ -192,21 +191,21 @@ def update_dropdowns(data):
 def update_table(event=None):
     new_idx = h3.current()
 
-    if new_idx >= 0:
-        csv_path = entry_csv.get()
-        folder_path = entry_img.get()
+    if new_idx < 0: new_idx = 1
+    csv_path = entry_csv.get()
+    folder_path = entry_img.get()
 
-        csv_data = []
+    csv_data = []
 
-        if csv_path and os.path.exists(csv_path):
-            try:
-                with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
-                    reader = csv.reader(file)
-                    csv_data = list(reader)
-            except FileNotFoundError:
-                messagebox.showerror("Error", f"File not found: {csv_path}")
+    if csv_path and os.path.exists(csv_path):
+        try:
+            with open(csv_path, mode = 'r', encoding='utf-8', newline='') as file:
+                reader = csv.reader(file)
+                csv_data = list(reader)
+        except FileNotFoundError:
+            messagebox.showerror("Error", f"File not found: {csv_path}")
         
-        load_table(csv_data, folder_path, tree, col_idx_new=new_idx)
+    load_table(csv_data, folder_path, tree, new_idx)
 
 # Create window
 root = TkinterDnD.Tk()
