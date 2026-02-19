@@ -76,6 +76,9 @@ def reset_all():
     for row in recipe_tab.winfo_children()[1:]:
         row.destroy()
 
+    for row in tree.get_children():
+        tree.delete(row)
+
 # Filechoosers
 def select_csv():
     path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -296,6 +299,20 @@ function.add_command(label='Insert', command=lambda: open_insert_window())
 function.add_command(label='Remove', command=lambda: open_remove_window())
 function.add_command(label='Replace', command=lambda: open_replace_window())
 
+# Show CSV window
+def show_csv_window():
+    functions_frame.pack_forget()
+    csv_frame.pack(expand=True, fill='both')
+    switch_button_c.grid_remove()
+    switch_button_f.grid()
+
+# Functions window
+def show_functions_window():
+    csv_frame.pack_forget()
+    functions_frame.pack(expand=True, fill='both')
+    switch_button_f.grid_remove()
+    switch_button_c.grid()
+
 # Serialize window
 def open_serialize_window():
     serialize_window = tk.Toplevel(root)
@@ -360,12 +377,16 @@ def open_replace_window():
     tk.Button(replace_window, text="Apply", command=lambda: apply_replace(find_entry.get(), replace_entry.get())).pack(pady=20)
 
 # Upper Frame
-upper_frame = tk.Frame(root, height=250, bg="#F0F0F0", padx=10)
-upper_frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 0))
+upper_frame = tk.Frame(root, height=250, bg="#F0F0F0")
+upper_frame.pack(side=tk.TOP, fill=tk.X)
 upper_frame.pack_propagate(False)
 
+# Functions frame
+functions_frame = tk.Frame(upper_frame, height=250, bg="#F0F0F0", padx=10)
+functions_frame.pack_propagate(False)
+
 # Functions tab
-functions_tab = tk.Frame(upper_frame, bg="#AD8EB6", width=200)
+functions_tab = tk.Frame(functions_frame, bg="#AD8EB6", width=200)
 functions_tab.pack(fill='y', side='left', padx=(0, 5))
 functions_tab.pack_propagate(False)
 
@@ -379,7 +400,7 @@ ttk.Button(functions_tab, text="Remove", width=30, command=lambda: add_remove_ui
 ttk.Button(functions_tab, text="Replace", width=30, command=lambda: add_replace_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
 
 # Recipe tab
-recipe_tab = tk.Frame(upper_frame, bg="#97D8CD", width=200)
+recipe_tab = tk.Frame(functions_frame, bg="#97D8CD", width=200)
 recipe_tab.pack(padx=(0, 5), fill='y', side='left')
 recipe_tab.pack_propagate(False)
 
@@ -387,36 +408,34 @@ recipe_label = tk.Label(recipe_tab, text="Recipe", bg="#97D8CD", font=("Roboto",
 recipe_label.pack(padx = 5, pady=5, side='top', anchor='w')
 
 # Options tab
-options_tab = tk.Frame(upper_frame, bg="#BBD8AD")
+options_tab = tk.Frame(functions_frame, bg="#BBD8AD")
 options_tab.pack(expand=True, fill='both', side='left')
 options_tab.pack_propagate(False)
 
 options_label = tk.Label(options_tab, text="Options", bg="#BBD8AD", font=("Roboto", 12, "bold"))
 options_label.pack(padx = 5, pady=5, side='top', anchor='w')
 
+# CSV frame
+csv_frame = tk.Frame(upper_frame, bg="#BBD8AD")
+csv_frame.pack(side=tk.TOP, fill='x', padx=10, pady=(0, 5))
 
-
-""" # CSV chooser
-tk.Label(upper_frame, text="Choose CSV-file:").pack(pady=5)
-
+# CSV chooser
+tk.Label(csv_frame, text="Choose CSV-file:").pack(pady=5)
+entry_csv = tk.Entry(csv_frame, width=50)
 entry_csv.pack()
-tk.Button(upper_frame, text="Choose...", command=select_csv).pack(pady=2)
+tk.Button(csv_frame, text="Choose...", command=select_csv).pack(pady=2)
 
 # Input images folder chooser
-tk.Label(upper_frame, text="Choose input images folder:").pack(pady=5)
-
+tk.Label(csv_frame, text="Choose input images folder:").pack(pady=5)
+entry_img = tk.Entry(csv_frame, width=50)
 entry_img.pack()
-tk.Button(upper_frame, text="Choose...", command=select_in_folder).pack(pady=2)
+tk.Button(csv_frame, text="Choose...", command=select_in_folder).pack(pady=2)
 
 # Output images folder chooser
-tk.Label(upper_frame, text="Choose output folder:").pack(pady=5)
-
+tk.Label(csv_frame, text="Choose output folder:").pack(pady=5)
+entry_out = tk.Entry(csv_frame, width=50)
 entry_out.pack()
-tk.Button(upper_frame, text="Choose...", command=select_out_folder).pack(pady=2) """
-
-entry_csv = tk.Entry(upper_frame, width=50)
-entry_img = tk.Entry(upper_frame, width=50)
-entry_out = tk.Entry(upper_frame, width=50)
+tk.Button(csv_frame, text="Choose...", command=select_out_folder).pack(pady=2)
 
 # Middle frame
 mid_frame = tk.Frame(root, bg="#F0F0F0", height=300)
@@ -435,6 +454,14 @@ run_button.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 reset_button = tk.Button(buttons_frame, text="Reset", bg="red", fg="white", font=("Roboto", 12, "bold"), command=reset_all)
 
 reset_button.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+# Switch window buttons
+switch_button_f = tk.Button(buttons_frame, text="Functions view", bg="#347083", fg="white", font=("Roboto", 12, "bold"), command=show_functions_window)
+switch_button_f.grid(row=0, column=2, padx=10, pady=10, sticky='w')
+
+switch_button_c = tk.Button(buttons_frame, text="CSV view", bg="#347083", fg="white", font=("Roboto", 12, "bold"), command=show_csv_window)
+switch_button_c.grid(row=0, column=3, padx=10, pady=10, sticky='w')
+switch_button_c.grid_remove()
 
 # Drop frame
 drop_frame = tk.Label(mid_frame, text="Drag and drop CSV file or image folder here", bg="#B6C5CF", font=("Roboto", 12), width=40, height=4, border = 2, relief="groove")
