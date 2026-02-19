@@ -65,6 +65,17 @@ def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
     except Exception as e:
         messagebox.showerror("Error", f"Something went wrong: \n{str(e)}")
 
+# Reset function
+def reset_all():
+    entry_csv.delete(0, tk.END)
+    entry_img.delete(0, tk.END)
+    entry_out.delete(0, tk.END)
+    h3.set("New name (Choose column)")
+    update_table()
+
+    for row in recipe_tab.winfo_children()[1:]:
+        row.destroy()
+
 # Filechoosers
 def select_csv():
     path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -246,14 +257,26 @@ def update_table(event=None):
         
     load_table(csv_data, folder_path, tree, new_idx)
 
-# Create window
+# Functions for functions
+def add_serialize_ui():
+    row = tk.Frame(recipe_tab, bg="#D8639D", pady=5, padx=5, relief="ridge", borderwidth=2)
+    row.pack(fill='x', pady=2)
+
+    tk.Label(row, text="Serialize", bg="#D8639D", font=("Roboto", 10, "bold")).pack(side='left', padx=5)
+
+def add_insert_ui():
+    pass
+
+def add_remove_ui():
+    pass
+
+def add_replace_ui():
+    pass
+
+# Root window
 root = TkinterDnD.Tk()
 root.title("File renamer")
 root.geometry("1024x640")
-
-# Paned window
-paned_window = ttk.Panedwindow(root, orient=tk.VERTICAL)
-paned_window.pack(fill=tk.BOTH, expand=True)
 
 # Menubar
 menubar = Menu(root)
@@ -336,45 +359,93 @@ def open_replace_window():
 
     tk.Button(replace_window, text="Apply", command=lambda: apply_replace(find_entry.get(), replace_entry.get())).pack(pady=20)
 
-# Chooser Frame
-chooser_frame = tk.Frame(paned_window, height=150, bg="#F0F0F0")
-chooser_frame.pack(expand=False, fill='x')
+# Upper Frame
+upper_frame = tk.Frame(root, height=250, bg="#F0F0F0", padx=10)
+upper_frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 0))
+upper_frame.pack_propagate(False)
 
-paned_window.add(chooser_frame)
+# Functions tab
+functions_tab = tk.Frame(upper_frame, bg="#AD8EB6", width=200)
+functions_tab.pack(fill='y', side='left', padx=(0, 5))
+functions_tab.pack_propagate(False)
 
-# CSV chooser
-tk.Label(chooser_frame, text="Choose CSV-file:").pack(pady=5)
-entry_csv = tk.Entry(chooser_frame, width=50)
+functions_label = tk.Label(functions_tab, text="Functions", bg="#AD8EB6", font=("Roboto", 12, "bold"))
+functions_label.pack(padx = 5, pady=5, side='top', anchor='w')
+
+# Function buttons
+ttk.Button(functions_tab, text="Serialize", width=30, command=lambda: add_serialize_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Insert", width=30, command=lambda: add_insert_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Remove", width=30, command=lambda: add_remove_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Replace", width=30, command=lambda: add_replace_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
+
+# Recipe tab
+recipe_tab = tk.Frame(upper_frame, bg="#97D8CD", width=200)
+recipe_tab.pack(padx=(0, 5), fill='y', side='left')
+recipe_tab.pack_propagate(False)
+
+recipe_label = tk.Label(recipe_tab, text="Recipe", bg="#97D8CD", font=("Roboto", 12, "bold"))
+recipe_label.pack(padx = 5, pady=5, side='top', anchor='w')
+
+# Options tab
+options_tab = tk.Frame(upper_frame, bg="#BBD8AD")
+options_tab.pack(expand=True, fill='both', side='left')
+options_tab.pack_propagate(False)
+
+options_label = tk.Label(options_tab, text="Options", bg="#BBD8AD", font=("Roboto", 12, "bold"))
+options_label.pack(padx = 5, pady=5, side='top', anchor='w')
+
+
+
+""" # CSV chooser
+tk.Label(upper_frame, text="Choose CSV-file:").pack(pady=5)
+
 entry_csv.pack()
-tk.Button(chooser_frame, text="Choose...", command=select_csv).pack(pady=2)
+tk.Button(upper_frame, text="Choose...", command=select_csv).pack(pady=2)
 
 # Input images folder chooser
-tk.Label(chooser_frame, text="Choose input images folder:").pack(pady=5)
-entry_img = tk.Entry(chooser_frame, width=50)
+tk.Label(upper_frame, text="Choose input images folder:").pack(pady=5)
+
 entry_img.pack()
-tk.Button(chooser_frame, text="Choose...", command=select_in_folder).pack(pady=2)
+tk.Button(upper_frame, text="Choose...", command=select_in_folder).pack(pady=2)
 
 # Output images folder chooser
-tk.Label(chooser_frame, text="Choose output folder:").pack(pady=5)
-entry_out = tk.Entry(chooser_frame, width=50)
+tk.Label(upper_frame, text="Choose output folder:").pack(pady=5)
+
 entry_out.pack()
-tk.Button(chooser_frame, text="Choose...", command=select_out_folder).pack(pady=2)
+tk.Button(upper_frame, text="Choose...", command=select_out_folder).pack(pady=2) """
+
+entry_csv = tk.Entry(upper_frame, width=50)
+entry_img = tk.Entry(upper_frame, width=50)
+entry_out = tk.Entry(upper_frame, width=50)
+
+# Middle frame
+mid_frame = tk.Frame(root, bg="#F0F0F0", height=300)
+mid_frame.pack(side=tk.TOP, expand=False, fill='x')
+
+# Mid-buttons grid
+buttons_frame = tk.Frame(mid_frame, bg="#F0F0F0")
+buttons_frame.pack(pady=10)
 
 # Run-button
-tk.Button(chooser_frame, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process).pack(pady=20)
+run_button = tk.Button(buttons_frame, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process)
+
+run_button.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+
+# Reset-button
+reset_button = tk.Button(buttons_frame, text="Reset", bg="red", fg="white", font=("Roboto", 12, "bold"), command=reset_all)
+
+reset_button.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
 # Drop frame
-drop_frame = tk.Label(chooser_frame, text="Drag and drop CSV file or image folder here", bg="#B6C5CF", font=("Roboto", 12), width=40, height=4, border = 2, relief="groove")
-drop_frame.pack(expand=True, fill='both')
+drop_frame = tk.Label(mid_frame, text="Drag and drop CSV file or image folder here", bg="#B6C5CF", font=("Roboto", 12), width=40, height=4, border = 2, relief="groove")
+drop_frame.pack(expand=False, fill='both')
 
 drop_frame.drop_target_register(DND_FILES)
 drop_frame.dnd_bind('<<Drop>>', drop)
 
 # Table Frame
-table_window = tk.Frame(paned_window, bg="#ADBBC4")
-table_window.pack(expand=True, fill='both')
-
-paned_window.add(table_window)
+table_window = tk.Frame(root, bg="#ADBBC4")
+table_window.pack(side=tk.BOTTOM, expand=True, fill='both')
 
 # Drop-down headings
 headings_frame = tk.Frame(table_window, height=30, bg="#B6C5CF")
@@ -397,10 +468,6 @@ h3.grid(row=0, column=2, padx=(0, 20), pady=5, sticky='w')
 h3.bind("<<ComboboxSelected>>", update_table)
 
 # Table
-style = ttk.Style()
-style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
-style.map('Treeview', background=[('selected', '#347083')])
-
 columns = ("index", "current_name", "new_name")
 tree = ttk.Treeview(table_window, columns=columns, show='headings')
 
@@ -416,6 +483,17 @@ tree.configure(yscrollcommand=scrollbar.set)
 
 tree.pack(side='left', fill='both', expand=True)
 scrollbar.pack(side='right', fill='y')
+
+# Style
+style = ttk.Style()
+
+style.map("TButton",
+          foreground=[('pressed', 'white'), ('active', 'black')],
+          background=[('pressed', '!disabled', '#347083'), ('active', '#347083')]
+          )
+
+style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
+style.map('Treeview', background=[('selected', '#347083')])
 
 root.config(menu=menubar)
 root.mainloop()
