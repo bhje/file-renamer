@@ -8,13 +8,40 @@ from tkinter import ttk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import shutil
 
+# Root window
+root = TkinterDnD.Tk()
+root.title("File renamer")
+root.geometry("1024x640")
+
+# Style
+style = ttk.Style()
+
+style.theme_use('clam')
+
+style.map("TButton",
+          foreground=[('pressed', 'white'), ('active', 'black')],
+          background=[('pressed', '!disabled', '#347083'), ('active', '#347083')]
+            )
+style.configure("TButton",
+                font=("Roboto", 10),
+                foreground="black")
+style.map("R.TButton",
+          foreground=[('pressed', 'white'), ('active', 'black')],
+          background=[('pressed', '#EB091C'), ('active', '#EB091C')]
+            )
+style.configure("R.TButton",
+                font=("Roboto", 10),
+                foreground="black")
+
+style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
+style.map('Treeview', background=[('selected', '#347083')])
+
 def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
     csv_path = csv_path_entry.get().strip()
     images_folder = images_folder_entry.get().strip()
     output_folder = output_folder_entry.get().strip()
 
     col_idx_new = h3.current()
-    if col_idx_new == -1: col_idx_curr = 1
     
     if col_idx_new < 0:
         messagebox.showwarning("Warning", "Please select columns for new names.")
@@ -78,6 +105,9 @@ def reset_all():
 
     for row in tree.get_children():
         tree.delete(row)
+
+    for label in options_tab.winfo_children()[1:]:
+        label.destroy()
 
 # Filechoosers
 def select_csv():
@@ -262,24 +292,50 @@ def update_table(event=None):
 
 # Functions for functions
 def add_serialize_ui():
-    row = tk.Frame(recipe_tab, bg="#D8639D", pady=5, padx=5, relief="ridge", borderwidth=2)
-    row.pack(fill='x', pady=2)
+    ttk.Button(recipe_tab, text="Serialize", style="R.TButton", command=open_serialize_window).pack(fill='x', padx=5, pady=2)
 
-    tk.Label(row, text="Serialize", bg="#D8639D", font=("Roboto", 10, "bold")).pack(side='left', padx=5)
+    ui_frame = tk.Frame(options_tab, height=50, bg="#BBD8AD")
+    ui_frame.pack(fill='x')
+    tk.Label(ui_frame, text="Serialize options:", bg="#BBD8AD", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Start number", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Increment", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 def add_insert_ui():
-    pass
+    ttk.Button(recipe_tab, text="Insert", style="R.TButton", command=open_insert_window).pack(fill='x', padx=5, pady=2)
+
+    ui_frame = tk.Frame(options_tab, height=50, bg="#BBD8AD")
+    ui_frame.pack(fill='x')
+    tk.Label(ui_frame, text="Insert options:", bg="#BBD8AD", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Text to insert", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Position", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    position_var = tk.StringVar(value="start")
+    tk.Radiobutton(ui_frame, text="Start", variable=position_var, value="start", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="End", variable=position_var, value="end", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="Choose:", variable=position_var, value="choose", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=2).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 def add_remove_ui():
-    pass
+    ttk.Button(recipe_tab, text="Remove", style="R.TButton", command=open_remove_window).pack(fill='x', padx=5, pady=2)
+
+    ui_frame = tk.Frame(options_tab, height=50, bg="#BBD8AD")
+    ui_frame.pack(fill='x')
+    tk.Label(ui_frame, text="Remove options:", bg="#BBD8AD", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Text to remove", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 def add_replace_ui():
-    pass
+    ttk.Button(recipe_tab, text="Replace", style="R.TButton", command=open_replace_window).pack(fill='x', padx=5, pady=2)
 
-# Root window
-root = TkinterDnD.Tk()
-root.title("File renamer")
-root.geometry("1024x640")
+    ui_frame = tk.Frame(options_tab, height=50, bg="#BBD8AD")
+    ui_frame.pack(fill='x')
+    tk.Label(ui_frame, text="Replace options:", bg="#BBD8AD", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Text to replace", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Replacement text", bg="#BBD8AD").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 # Menubar
 menubar = Menu(root)
@@ -394,10 +450,10 @@ functions_label = tk.Label(functions_tab, text="Functions", bg="#AD8EB6", font=(
 functions_label.pack(padx = 5, pady=5, side='top', anchor='w')
 
 # Function buttons
-ttk.Button(functions_tab, text="Serialize", width=30, command=lambda: add_serialize_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
-ttk.Button(functions_tab, text="Insert", width=30, command=lambda: add_insert_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
-ttk.Button(functions_tab, text="Remove", width=30, command=lambda: add_remove_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
-ttk.Button(functions_tab, text="Replace", width=30, command=lambda: add_replace_ui(), style = "C.TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Serialize", width=30, command=lambda: add_serialize_ui(), style = "TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Insert", width=30, command=lambda: add_insert_ui(), style = "TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Remove", width=30, command=lambda: add_remove_ui(), style = "TButton").pack(pady=5, padx=10, anchor='w')
+ttk.Button(functions_tab, text="Replace", width=30, command=lambda: add_replace_ui(), style = "TButton").pack(pady=5, padx=10, anchor='w')
 
 # Recipe tab
 recipe_tab = tk.Frame(functions_frame, bg="#97D8CD", width=200)
@@ -510,17 +566,6 @@ tree.configure(yscrollcommand=scrollbar.set)
 
 tree.pack(side='left', fill='both', expand=True)
 scrollbar.pack(side='right', fill='y')
-
-# Style
-style = ttk.Style()
-
-style.map("TButton",
-          foreground=[('pressed', 'white'), ('active', 'black')],
-          background=[('pressed', '!disabled', '#347083'), ('active', '#347083')]
-          )
-
-style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
-style.map('Treeview', background=[('selected', '#347083')])
 
 root.config(menu=menubar)
 root.mainloop()
