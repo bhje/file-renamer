@@ -24,8 +24,11 @@
 2. **Install the dependencies** pip install tkinterdnd2 natsort
 3. **Locate the project folder**
 4. **Run the application**
-5. **Select Input, CSV and Output**
-6. **Choose a column from the dropdown-menu**
+5. a. **Select Input, CSV and Output**
+   b. **Alternatively, select only Input**
+
+6. a. **Choose a column from the dropdown-menu**
+   b. **Or, choose a set of functions to create your desired file-names**
 7. **Click "Run renamer" to start the process**
 
 <img width="1026" height="692" alt="image" src="https://github.com/user-attachments/assets/ab3b0faf-3fd9-45b4-9f38-c1d9ef6bf534" />
