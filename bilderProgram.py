@@ -31,7 +31,8 @@ style.map("R.TButton",
             )
 style.configure("R.TButton",
                 font=("Roboto", 10),
-                foreground="black")
+                foreground="black",
+                )
 
 style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
 style.map('Treeview', background=[('selected', '#347083')])
@@ -312,30 +313,49 @@ def delete_step(recipe_widget, options_widget):
     options_widget.destroy()
 
 # Functions for functions
+ROW_HEIGHT = 37
+FRAME_PAD_Y = 2
+TEXT_PAD_Y = 6
+
 def add_serialize_ui():
-    recipe_button = ttk.Button(recipe_inside_frame, text="Serialize", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
-    recipe_button.pack(fill='x', padx=5, pady=2)
+    recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
+    recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
+    recipe_row.pack_propagate(False)
 
-    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
-    ui_frame.pack(fill='x')
+    recipe_button = ttk.Button(recipe_row, text="Serialize", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button.pack(fill='x', expand=True)
 
-    tk.Label(ui_frame, text="Serialize options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Start number", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Increment", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
+    ui_frame.pack(fill='x', pady=FRAME_PAD_Y)
+    ui_frame.pack_propagate(False)
+
+    tk.Label(ui_frame, text="Serialize options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Start number", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Increment", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+
+    ui_frame.update()
+    recipe_button.update()
+    print(f"UI-frame for serialize function is {ui_frame.winfo_height()} pixels tall.")
+    print(f"Recipe frame for serialize function is {recipe_button.winfo_height()} pixels tall.")
 
 def add_insert_ui():
-    recipe_button = ttk.Button(recipe_inside_frame, text="Insert", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
-    recipe_button.pack(fill='x', padx=5, pady=2)
+    recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
+    recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
+    recipe_row.pack_propagate(False)
 
-    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
-    ui_frame.pack(fill='x')
+    recipe_button = ttk.Button(recipe_row, text="Insert", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button.pack(fill='x', expand=True)
 
-    tk.Label(ui_frame, text="Insert options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Text to insert", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Position", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
+    ui_frame.pack(fill='x', pady=FRAME_PAD_Y)
+    ui_frame.pack_propagate(False)
+
+    tk.Label(ui_frame, text="Insert options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(8, 4), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Text to insert", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Position", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
 
     position_var = tk.StringVar(value="start")
     choose_var = tk.StringVar()
@@ -349,18 +369,28 @@ def add_insert_ui():
 
     choose_var.trace_add("write", check_choose)
 
-    tk.Radiobutton(ui_frame, text="Start", variable=position_var, value="start", bg="#A8B9C4", command=clear_text).pack(pady=(10, 2), anchor='nw', side='left')
-    tk.Radiobutton(ui_frame, text="End", variable=position_var, value="end", bg="#A8B9C4", command=clear_text).pack(pady=(10, 2), anchor='nw', side='left')
-    tk.Radiobutton(ui_frame, text="Choose:", variable=position_var, value="choose", bg="#A8B9C4").pack(pady=(10, 2), anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="Start", variable=position_var, value="start", bg="#A8B9C4", command=clear_text).pack(pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="End", variable=position_var, value="end", bg="#A8B9C4", command=clear_text).pack(pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="Choose:", variable=position_var, value="choose", bg="#A8B9C4").pack(pady=TEXT_PAD_Y, anchor='nw', side='left')
     choose_entry = tk.Entry(ui_frame, width=2, textvariable=choose_var)
-    choose_entry.pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    choose_entry.pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+
+    ui_frame.update()
+    recipe_button.update()
+    print(f"UI-frame for insert function is {ui_frame.winfo_height()} pixels tall.")
+    print(f"Recipe frame for insert function is {recipe_button.winfo_height()} pixels tall.")
 
 def add_remove_ui():
-    recipe_button = ttk.Button(recipe_inside_frame, text="Remove", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
-    recipe_button.pack(fill='x', padx=5, pady=2)
+    recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
+    recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
+    recipe_row.pack_propagate(False)
 
-    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
-    ui_frame.pack(fill='x')
+    recipe_button = ttk.Button(recipe_row, text="Remove", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button.pack(fill='x', expand=True)
+
+    ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
+    ui_frame.pack(fill='x', pady=FRAME_PAD_Y)
+    ui_frame.pack_propagate(False)
 
     text_var = tk.StringVar()
     remove_all_var = tk.BooleanVar(value=False)
@@ -374,24 +404,39 @@ def add_remove_ui():
 
     text_var.trace_add("write", uncheck_all)
 
-    tk.Label(ui_frame, text="Remove options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Text to remove", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Entry(ui_frame, width=20, textvariable=text_var).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Remove all", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Radiobutton(ui_frame, text="Yes", variable=remove_all_var, value=True, bg="#A8B9C4", command=clear_text).pack(pady=(10, 2), anchor='nw', side='left')
+    tk.Label(ui_frame, text="Remove options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Text to remove", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20, textvariable=text_var).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Remove all", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="Yes", variable=remove_all_var, value=True, bg="#A8B9C4", command=clear_text).pack(pady=TEXT_PAD_Y, anchor='nw', side='left')
+
+    ui_frame.update()
+    recipe_button.update()
+    print(f"UI-frame for remove function is {ui_frame.winfo_height()} pixels tall.")
+    print(f"Recipe frame for remove function is {recipe_button.winfo_height()} pixels tall.")
 
 def add_replace_ui():
-    recipe_button = ttk.Button(recipe_inside_frame, text="Replace", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
-    recipe_button.pack(fill='x', padx=5, pady=2)
+    recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
+    recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
+    recipe_row.pack_propagate(False)
 
-    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
-    ui_frame.pack(fill='x')
+    recipe_button = ttk.Button(recipe_row, text="Replace", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button.pack(fill='x', expand=True)
 
-    tk.Label(ui_frame, text="Replace options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Text to replace", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Label(ui_frame, text="Replacement text", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
-    tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+    ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
+    ui_frame.pack(fill='x', pady=FRAME_PAD_Y)
+    ui_frame.pack_propagate(False)
+
+    tk.Label(ui_frame, text="Replace options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Text to replace", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Label(ui_frame, text="Replacement text", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+    tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
+
+    ui_frame.update()
+    recipe_button.update()
+    print(f"UI-frame for replace function is {ui_frame.winfo_height()} pixels tall.")
+    print(f"Recipe frame for replace function is {recipe_button.winfo_height()} pixels tall.")
 
 # Menubar
 menubar = Menu(root)
