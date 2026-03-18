@@ -322,7 +322,7 @@ def add_serialize_ui():
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
     recipe_row.pack_propagate(False)
 
-    recipe_button = ttk.Button(recipe_row, text="Serialize", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_row, text="Serialize", style="R.TButton", command=lambda: delete_step(recipe_row, ui_frame))
     recipe_button.pack(fill='x', expand=True)
 
     ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
@@ -340,7 +340,7 @@ def add_insert_ui():
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
     recipe_row.pack_propagate(False)
 
-    recipe_button = ttk.Button(recipe_row, text="Insert", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_row, text="Insert", style="R.TButton", command=lambda: delete_step(recipe_row, ui_frame))
     recipe_button.pack(fill='x', expand=True)
 
     ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
@@ -375,7 +375,7 @@ def add_remove_ui():
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
     recipe_row.pack_propagate(False)
 
-    recipe_button = ttk.Button(recipe_row, text="Remove", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_row, text="Remove", style="R.TButton", command=lambda: delete_step(recipe_row, ui_frame))
     recipe_button.pack(fill='x', expand=True)
 
     ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
@@ -405,7 +405,7 @@ def add_replace_ui():
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
     recipe_row.pack_propagate(False)
 
-    recipe_button = ttk.Button(recipe_row, text="Replace", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_row, text="Replace", style="R.TButton", command=lambda: delete_step(recipe_row, ui_frame))
     recipe_button.pack(fill='x', expand=True)
 
     ui_frame = tk.Frame(options_inside_frame, height=ROW_HEIGHT, bg="#A8B9C4")
@@ -527,7 +527,7 @@ def open_replace_window():
     tk.Button(replace_window, text="Apply", command=lambda: apply_replace(find_entry.get(), replace_entry.get())).pack(pady=20)
 
 def apply_all_functions():
-    for ui_frame in options_inside_frame.winfo_children()[1:]:
+    for ui_frame in options_inside_frame.winfo_children():
         for widget in ui_frame.winfo_children():
             if isinstance(widget, tk.Label) and "Serialize options:" in widget.cget("text"):
                 entries = [w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry)]
