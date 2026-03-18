@@ -100,13 +100,13 @@ def reset_all():
     h3.set("New name (Choose column)")
     update_table()
 
-    for row in recipe_inside_frame.winfo_children()[1:]:
+    for row in recipe_inside_frame.winfo_children():
         row.destroy()
 
     for row in tree.get_children():
         tree.delete(row)
 
-    for label in options_inside_frame.winfo_children()[1:]:
+    for label in options_inside_frame.winfo_children():
         label.destroy()
 
 # Filechoosers
