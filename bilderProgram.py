@@ -100,13 +100,13 @@ def reset_all():
     h3.set("New name (Choose column)")
     update_table()
 
-    for row in recipe_tab.winfo_children()[1:]:
+    for row in recipe_inside_frame.winfo_children()[1:]:
         row.destroy()
 
     for row in tree.get_children():
         tree.delete(row)
 
-    for label in options_tab.winfo_children()[1:]:
+    for label in options_inside_frame.winfo_children()[1:]:
         label.destroy()
 
 # Filechoosers
@@ -313,10 +313,10 @@ def delete_step(recipe_widget, options_widget):
 
 # Functions for functions
 def add_serialize_ui():
-    recipe_button = ttk.Button(recipe_tab, text="Serialize", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_inside_frame, text="Serialize", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
     recipe_button.pack(fill='x', padx=5, pady=2)
 
-    ui_frame = tk.Frame(options_tab, height=50, bg="#A8B9C4")
+    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
     ui_frame.pack(fill='x')
 
     tk.Label(ui_frame, text="Serialize options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
@@ -326,10 +326,10 @@ def add_serialize_ui():
     tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 def add_insert_ui():
-    recipe_button = ttk.Button(recipe_tab, text="Insert", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_inside_frame, text="Insert", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
     recipe_button.pack(fill='x', padx=5, pady=2)
 
-    ui_frame = tk.Frame(options_tab, height=50, bg="#A8B9C4")
+    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
     ui_frame.pack(fill='x')
 
     tk.Label(ui_frame, text="Insert options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
@@ -356,10 +356,10 @@ def add_insert_ui():
     choose_entry.pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 def add_remove_ui():
-    recipe_button = ttk.Button(recipe_tab, text="Remove", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_inside_frame, text="Remove", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
     recipe_button.pack(fill='x', padx=5, pady=2)
 
-    ui_frame = tk.Frame(options_tab, height=50, bg="#A8B9C4")
+    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
     ui_frame.pack(fill='x')
 
     text_var = tk.StringVar()
@@ -381,10 +381,10 @@ def add_remove_ui():
     tk.Radiobutton(ui_frame, text="Yes", variable=remove_all_var, value=True, bg="#A8B9C4", command=clear_text).pack(pady=(10, 2), anchor='nw', side='left')
 
 def add_replace_ui():
-    recipe_button = ttk.Button(recipe_tab, text="Replace", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
+    recipe_button = ttk.Button(recipe_inside_frame, text="Replace", style="R.TButton", command=lambda: delete_step(recipe_button, ui_frame))
     recipe_button.pack(fill='x', padx=5, pady=2)
 
-    ui_frame = tk.Frame(options_tab, height=50, bg="#A8B9C4")
+    ui_frame = tk.Frame(options_inside_frame, height=50, bg="#A8B9C4")
     ui_frame.pack(fill='x')
 
     tk.Label(ui_frame, text="Replace options:", bg="#A8B9C4", font=("Roboto", 10, "bold")).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
@@ -418,12 +418,25 @@ def show_csv_window():
     switch_button_c.grid_remove()
     switch_button_f.grid()
 
-# Functions window
+# Show Functions window
 def show_functions_window():
     csv_frame.pack_forget()
     functions_frame.pack(expand=True, fill='both')
     switch_button_f.grid_remove()
     switch_button_c.grid()
+
+# Functions window scrolling
+def update_scrollregion(event):
+    recipe_canvas.configure(scrollregion=recipe_canvas.bbox("all"))
+    options_canvas.configure(scrollregion=options_canvas.bbox("all"))
+
+def sync_scroll(*args):
+    recipe_canvas.yview(*args)
+    options_canvas.yview(*args)
+    
+def on_mousewheel(event):
+    recipe_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    options_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
 # Serialize window
 def open_serialize_window():
@@ -489,7 +502,7 @@ def open_replace_window():
     tk.Button(replace_window, text="Apply", command=lambda: apply_replace(find_entry.get(), replace_entry.get())).pack(pady=20)
 
 def apply_all_functions():
-    for ui_frame in options_tab.winfo_children()[1:]:
+    for ui_frame in options_inside_frame.winfo_children()[1:]:
         for widget in ui_frame.winfo_children():
             if isinstance(widget, tk.Label) and "Serialize options:" in widget.cget("text"):
                 entries = [w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry)]
@@ -559,6 +572,12 @@ recipe_tab.pack_propagate(False)
 recipe_label = tk.Label(recipe_tab, text="Recipe", bg="#BBD8AD", font=("Roboto", 12, "bold"))
 recipe_label.pack(padx = 5, pady=5, side='top', anchor='w')
 
+recipe_canvas = tk.Canvas(recipe_tab, bg="#BBD8AD", highlightthickness=0)
+recipe_inside_frame = tk.Frame(recipe_canvas, bg="#BBD8AD")
+
+window_id = recipe_canvas.create_window((0, 0), window=recipe_inside_frame, anchor="nw")
+recipe_canvas.pack(side='left', fill='both', expand=True)
+
 # Options tab
 options_tab = tk.Frame(functions_frame, bg="#B6C5CF")
 options_tab.pack(expand=True, fill='both', side='left')
@@ -566,6 +585,30 @@ options_tab.pack_propagate(False)
 
 options_label = tk.Label(options_tab, text="Options", bg="#B6C5CF", font=("Roboto", 12, "bold"))
 options_label.pack(padx = 5, pady=5, side='top', anchor='w')
+
+functions_scrollbar = ttk.Scrollbar(options_tab, orient="vertical")
+functions_scrollbar.pack(side='right', fill='y')
+
+options_canvas = tk.Canvas(options_tab, bg="#B6C5CF", highlightthickness=0)
+options_inside_frame = tk.Frame(options_canvas, bg="#B6C5CF")
+
+options_window_id = options_canvas.create_window((0, 0), window=options_inside_frame, anchor="nw")
+options_canvas.pack(side='left', fill='both', expand=True)
+
+# Scroll events
+options_inside_frame.bind("<Configure>", update_scrollregion)
+recipe_inside_frame.bind("<Configure>", update_scrollregion)
+
+options_canvas.bind("<Configure>", lambda e: options_canvas.itemconfig(options_window_id, width=e.width))
+recipe_canvas.bind("<Configure>", lambda e: recipe_canvas.itemconfig(window_id, width=e.width))
+
+functions_scrollbar.config(command=sync_scroll)
+recipe_canvas.config(yscrollcommand=functions_scrollbar.set)
+options_canvas.config(yscrollcommand=functions_scrollbar.set)
+
+for canvas in [recipe_canvas, options_canvas]:
+    canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", on_mousewheel))
+    canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
 # CSV frame
 csv_frame = tk.Frame(upper_frame, bg="#B6C5CF")
@@ -661,11 +704,11 @@ tree.heading("index", text="#")
 tree.heading("current_name", text="Current name")
 tree.heading("new_name", text="New name")
 
-scrollbar = ttk.Scrollbar(table_window, orient="vertical", command=tree.yview)
-tree.configure(yscrollcommand=scrollbar.set)
+tree_scrollbar = ttk.Scrollbar(table_window, orient="vertical", command=tree.yview)
+tree.configure(yscrollcommand=tree_scrollbar.set)
 
 tree.pack(side='left', fill='both', expand=True)
-scrollbar.pack(side='right', fill='y')
+tree_scrollbar.pack(side='right', fill='y')
 
 root.config(menu=menubar)
 root.mainloop()
