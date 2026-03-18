@@ -241,13 +241,23 @@ def apply_serialize(start_num, increment):
         tree.set(item, column="new_name", value=new_name)
 
 # Apply insert function to table
-def apply_insert(text, position):
+def apply_insert(text, position, choose_pos=None):
     for item in tree.get_children():
         current_name = tree.item(item, "values")[2]
         if position == "start":
             new_name = text + current_name
         elif position == "end":
             new_name = current_name + text
+        elif position == "choose" and choose_pos is not None:
+            try:
+                pos = int(choose_pos)
+                if pos < 0:
+                    pos = 0
+                elif pos > len(current_name):
+                    pos = len(current_name)
+                new_name = current_name[:pos] + text + current_name[pos:]
+            except ValueError:
+                new_name = current_name
         else:
             new_name = current_name
         tree.set(item, column="new_name", value=new_name)
@@ -326,11 +336,23 @@ def add_insert_ui():
     tk.Label(ui_frame, text="Text to insert", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
     tk.Entry(ui_frame, width=20).pack(padx=5, pady=(10, 2), anchor='nw', side='left')
     tk.Label(ui_frame, text="Position", bg="#A8B9C4").pack(padx=5, pady=(10, 2), anchor='nw', side='left')
+
     position_var = tk.StringVar(value="start")
-    tk.Radiobutton(ui_frame, text="Start", variable=position_var, value="start", bg="#A8B9C4").pack(pady=(10, 2), anchor='nw', side='left')
-    tk.Radiobutton(ui_frame, text="End", variable=position_var, value="end", bg="#A8B9C4").pack(pady=(10, 2), anchor='nw', side='left')
+    choose_var = tk.StringVar()
+
+    def check_choose(*args):
+        if choose_var.get():
+            position_var.set("choose")
+
+    def clear_text():
+        choose_var.set("")
+
+    choose_var.trace_add("write", check_choose)
+
+    tk.Radiobutton(ui_frame, text="Start", variable=position_var, value="start", bg="#A8B9C4", command=clear_text).pack(pady=(10, 2), anchor='nw', side='left')
+    tk.Radiobutton(ui_frame, text="End", variable=position_var, value="end", bg="#A8B9C4", command=clear_text).pack(pady=(10, 2), anchor='nw', side='left')
     tk.Radiobutton(ui_frame, text="Choose:", variable=position_var, value="choose", bg="#A8B9C4").pack(pady=(10, 2), anchor='nw', side='left')
-    choose_entry = tk.Entry(ui_frame, width=2)
+    choose_entry = tk.Entry(ui_frame, width=2, textvariable=choose_var)
     choose_entry.pack(padx=5, pady=(10, 2), anchor='nw', side='left')
 
 def add_remove_ui():
@@ -471,6 +493,7 @@ def apply_all_functions():
         for widget in ui_frame.winfo_children():
             if isinstance(widget, tk.Label) and "Serialize options:" in widget.cget("text"):
                 entries = [w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry)]
+
                 if len(entries) >= 2:
                     try:
                         start_num = int(entries[0].get())
@@ -482,12 +505,17 @@ def apply_all_functions():
             elif isinstance(widget, tk.Label) and "Insert options:" in widget.cget("text"):
                 text_entry = next((w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry)), None)
                 position_var = next((w for w in ui_frame.winfo_children() if isinstance(w, tk.Radiobutton)), None)
-                if text_entry and position_var:
+                choose_entry = next((w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry) and w.cget("width") == 2), None)
+
+                if text_entry and choose_entry and choose_entry.get():
+                    apply_insert(text_entry.get(), "choose", choose_entry.get())
+                elif text_entry and position_var:
                     apply_insert(text_entry.get(), position_var.cget("value"))
                 print("Applied insert function.")
             elif isinstance(widget, tk.Label) and "Remove options:" in widget.cget("text"):
                 text_entry = next((w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry)), None)
                 remove_all_var = next((w for w in ui_frame.winfo_children() if isinstance(w, tk.Checkbutton)), None)
+
                 if text_entry:
                     apply_remove(text_entry.get())
                 elif remove_all_var and remove_all_var.var.get():
@@ -495,6 +523,7 @@ def apply_all_functions():
                 print("Applied remove function.")
             elif isinstance(widget, tk.Label) and "Replace options:" in widget.cget("text"):
                 entries = [w for w in ui_frame.winfo_children() if isinstance(w, tk.Entry)]
+
                 if len(entries) >= 2:
                     apply_replace(entries[0].get(), entries[1].get())
                 print("Applied replace function.")
