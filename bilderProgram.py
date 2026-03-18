@@ -335,11 +335,6 @@ def add_serialize_ui():
     tk.Label(ui_frame, text="Increment", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
     tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
 
-    ui_frame.update()
-    recipe_button.update()
-    print(f"UI-frame for serialize function is {ui_frame.winfo_height()} pixels tall.")
-    print(f"Recipe frame for serialize function is {recipe_button.winfo_height()} pixels tall.")
-
 def add_insert_ui():
     recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
@@ -375,11 +370,6 @@ def add_insert_ui():
     choose_entry = tk.Entry(ui_frame, width=2, textvariable=choose_var)
     choose_entry.pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
 
-    ui_frame.update()
-    recipe_button.update()
-    print(f"UI-frame for insert function is {ui_frame.winfo_height()} pixels tall.")
-    print(f"Recipe frame for insert function is {recipe_button.winfo_height()} pixels tall.")
-
 def add_remove_ui():
     recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
@@ -410,11 +400,6 @@ def add_remove_ui():
     tk.Label(ui_frame, text="Remove all", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
     tk.Radiobutton(ui_frame, text="Yes", variable=remove_all_var, value=True, bg="#A8B9C4", command=clear_text).pack(pady=TEXT_PAD_Y, anchor='nw', side='left')
 
-    ui_frame.update()
-    recipe_button.update()
-    print(f"UI-frame for remove function is {ui_frame.winfo_height()} pixels tall.")
-    print(f"Recipe frame for remove function is {recipe_button.winfo_height()} pixels tall.")
-
 def add_replace_ui():
     recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
@@ -432,11 +417,6 @@ def add_replace_ui():
     tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
     tk.Label(ui_frame, text="Replacement text", bg="#A8B9C4").pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
     tk.Entry(ui_frame, width=20).pack(padx=5, pady=TEXT_PAD_Y, anchor='nw', side='left')
-
-    ui_frame.update()
-    recipe_button.update()
-    print(f"UI-frame for replace function is {ui_frame.winfo_height()} pixels tall.")
-    print(f"Recipe frame for replace function is {recipe_button.winfo_height()} pixels tall.")
 
 # Menubar
 menubar = Menu(root)
