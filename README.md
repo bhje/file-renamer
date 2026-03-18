@@ -1,6 +1,7 @@
 # CSV File Renamer
 
-<img width="1026" height="692" alt="image" src="https://github.com/user-attachments/assets/55677d5a-56c8-4452-b823-767d639b4a2c" />
+<img width="1026" height="692" alt="image" src="https://github.com/user-attachments/assets/b025011c-bb47-4a43-90a8-9ce42b2ef53d" />
+
 
 ## Features
 
@@ -8,6 +9,7 @@
 * **CSV Mapping**
 * **Live Preview**
 * **Resizable table**
+* **Insert, Remove, Replace and Serialize Functions**
 
 ## Built with // Dependencies
 
@@ -25,3 +27,5 @@
 5. **Select Input, CSV and Output**
 6. **Choose a column from the dropdown-menu**
 7. **Click "Run renamer" to start the process**
+
+<img width="1026" height="692" alt="image" src="https://github.com/user-attachments/assets/ab3b0faf-3fd9-45b4-9f38-c1d9ef6bf534" />
