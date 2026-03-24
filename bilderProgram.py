@@ -41,7 +41,7 @@ def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
     images_folder = images_folder_entry.get().strip()
     output_folder = output_folder_entry.get().strip()
 
-    col_idx_new = h3.current()
+    col_idx_new = h4.current()
     
     if col_idx_new < 0:
         messagebox.showwarning("Warning", "Please select columns for new names.")
@@ -97,7 +97,7 @@ def reset_all():
     entry_csv.delete(0, tk.END)
     entry_img.delete(0, tk.END)
     entry_out.delete(0, tk.END)
-    h3.set("New name (Choose column)")
+    h4.set("New name (Choose column)")
     update_table()
 
     for row in recipe_tab.winfo_children()[1:]:
@@ -144,7 +144,7 @@ def load_table(csv_data, img_data, tree, col_idx_new = 1):
     for item in tree.get_children():
         tree.delete(item)
 
-    if h3.get() == "New name (Choose column)":
+    if h4.get() == "New name (Choose column)":
         col_idx_new = 1
 
     file_list = []
@@ -274,11 +274,11 @@ def apply_replace(find_text, replace_text):
 # Column names to drop-downs
 def update_dropdowns(data):
     columns = data[0]
-    h3['values'] = columns
+    h4['values'] = columns
 
 # Update table when drop-down selection changes
 def update_table(event=None):
-    new_idx = h3.current()
+    new_idx = h4.current()
 
     if new_idx < 0: new_idx = 1
     csv_path = entry_csv.get()
@@ -499,6 +499,25 @@ def apply_all_functions():
                     apply_replace(entries[0].get(), entries[1].get())
                 print("Applied replace function.")
 
+def sort_name_by(tv):
+    by = h3.get()
+    if by == "Name":
+        l = [(tv.set(k, "current_name"), k) for k in tv.get_children('')]
+        l.sort(key=lambda t: t[0])
+
+        for index, (val, k) in enumerate(l):
+            tv.move(k, '', index)
+    elif by == "Last modified":
+        sorted_items = sorted(tv.get_children(''), key=lambda k: os.path.getmtime(os.path.join(entry_img.get(), tv.set(k, "current_name"))))
+        for index, k in enumerate(sorted_items):
+            tv.move(k, '', index)
+    elif by == "Created":
+        sorted_items = sorted(tv.get_children(''), key=lambda k: os.path.getctime(os.path.join(entry_img.get(), tv.set(k, "current_name"))))
+        for index, k in enumerate(sorted_items):
+            tv.move(k, '', index)
+    else:
+        return
+
 # Upper Frame
 upper_frame = tk.Frame(root, height=250, bg="#F0F0F0")
 upper_frame.pack(side=tk.TOP, fill=tk.X)
@@ -607,19 +626,24 @@ headings_frame.pack(fill='x')
 
 headings_frame.grid_columnconfigure(0, weight=0, minsize=120)
 headings_frame.grid_columnconfigure(1, weight=1)
-headings_frame.grid_columnconfigure(2, weight=1)
+headings_frame.grid_columnconfigure(2, weight=0)
+headings_frame.grid_columnconfigure(3, weight=1)
 
 h1 = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
 h2 = ttk.Combobox(headings_frame, values=["Files from input folder"], font=("Roboto", 10, "bold"), width=30, state="disabled")
 h2.current(0)
-h3 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
+h3 = ttk.Combobox(headings_frame, values=["Sort by", "Name", "Last modified", "Created"], font=("Roboto", 10, "bold"), width=15, state="readonly")
 h3.current(0)
+h4 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
+h4.current(0)
 
 h1.grid(row=0, column=0, padx=(10, 25), pady=5, sticky='ew')
 h2.grid(row=0, column=1, padx=10, pady=5, sticky='w')
-h3.grid(row=0, column=2, padx=(0, 20), pady=5, sticky='w')
+h3.grid(row=0, column=1, padx=10, pady=5, sticky='e')
+h4.grid(row=0, column=3, padx=(0, 20), pady=5, sticky='w')
 
-h3.bind("<<ComboboxSelected>>", update_table)
+h3.bind("<<ComboboxSelected>>", lambda event: sort_name_by(tree))
+h4.bind("<<ComboboxSelected>>", update_table)
 
 # Table
 columns = ("index", "current_name", "new_name")
