@@ -17,11 +17,12 @@
 * **Tkinter** (GUI)
 * **TkinterDnD2** (Drag and drop functionality)
 * **Natsort** (For sorting)
+* **Pillow** (Image handling)
 
 ## Installation // User tutorial
 
 1. **Clone the repository** git clone https://github.com/bhje/file-renamer.git
-2. **Install the dependencies** pip install tkinterdnd2 natsort
+2. **Install the dependencies** pip install tkinterdnd2 natsort Pillow
 3. **Locate the project folder**
 4. **Run the application**
 5. a. **Select Input, CSV and Output** \

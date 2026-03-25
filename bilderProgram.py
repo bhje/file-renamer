@@ -7,6 +7,14 @@ from tkinter import messagebox, filedialog
 from tkinter import ttk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import shutil
+from PIL import Image, ImageTk
+
+# Setup
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+ROW_HEIGHT = 37
+FRAME_PAD_Y = 2
+TEXT_PAD_Y = 6
 
 # Root window
 root = TkinterDnD.Tk()
@@ -313,10 +321,6 @@ def delete_step(recipe_widget, options_widget):
     options_widget.destroy()
 
 # Functions for functions
-ROW_HEIGHT = 37
-FRAME_PAD_Y = 2
-TEXT_PAD_Y = 6
-
 def add_serialize_ui():
     recipe_row = tk.Frame(recipe_inside_frame, height=ROW_HEIGHT, bg="#BBD8AD")
     recipe_row.pack(fill='x', padx=5, pady=FRAME_PAD_Y)
@@ -566,24 +570,67 @@ def apply_all_functions():
                     apply_replace(entries[0].get(), entries[1].get())
                 print("Applied replace function.")
 
+def retrieve_single_column(tv, col_idx):
+    all_items = tv.get_children('')
+
+    valid_items = []
+    invalid_items = []
+
+    ignore_texts = ["No file data", "No csv data", "Something wrong with the csv data"]
+
+    for item in all_items:
+        value = tv.set(item, column=col_idx)
+        if value not in ignore_texts:
+            valid_items.append(value)
+        else:
+            invalid_items.append(value)
+
+    return valid_items, invalid_items
+
 def sort_name_by(tv):
     by = h3.get()
-    if by == "Name":
-        l = [(tv.set(k, "current_name"), k) for k in tv.get_children('')]
-        l.sort(key=lambda t: t[0])
 
-        for index, (val, k) in enumerate(l):
-            tv.move(k, '', index)
-    elif by == "Last modified":
-        sorted_items = sorted(tv.get_children(''), key=lambda k: os.path.getmtime(os.path.join(entry_img.get(), tv.set(k, "current_name"))))
-        for index, k in enumerate(sorted_items):
-            tv.move(k, '', index)
-    elif by == "Created":
-        sorted_items = sorted(tv.get_children(''), key=lambda k: os.path.getctime(os.path.join(entry_img.get(), tv.set(k, "current_name"))))
-        for index, k in enumerate(sorted_items):
-            tv.move(k, '', index)
-    else:
+    valid_items, invalid_items = retrieve_single_column(tv, "current_name")
+
+    all_items = tv.get_children('')
+    img_folder = entry_img.get()
+    
+    try:
+        if by == "Name":
+            valid_items = natsorted(valid_items)
+        elif by == "Date modified":
+            valid_items.sort(key=lambda k: os.path.getmtime(os.path.join(img_folder, k)))
+
+        elif by == "Date created":
+            valid_items.sort(key=lambda k: os.path.getctime(os.path.join(img_folder, k)))
+        else:
+            return
+    
+    except FileNotFoundError:
+        messagebox.showerror("Error", "Kunde inte hitta filerna för att läsa datum. Kontrollera mappen.")
         return
+
+    final_list = valid_items + invalid_items
+
+    for index, item in enumerate(all_items):
+        tv.set(item, column="current_name", value=final_list[index])
+    
+def reverse_order(tv, reverse):
+    valid_items, invalid_items = retrieve_single_column(tv, "current_name")
+    all_items = tv.get_children('')
+
+    valid_items.sort(reverse=reverse)
+
+    final_list = valid_items + invalid_items
+    for index, item in enumerate(all_items):
+        tv.set(item, column="current_name", value=final_list[index])
+
+    if reverse:
+        reverse_button.config(image=flip_arrows)
+    else:
+        reverse_button.config(image=reverse_image)
+
+    reverse_button.config(command=lambda: reverse_order(tv, not reverse))
 
 # Upper Frame
 upper_frame = tk.Frame(root, height=250, bg="#F0F0F0")
@@ -729,18 +776,33 @@ headings_frame.grid_columnconfigure(3, weight=1)
 h1 = tk.Label(headings_frame, text="File number", bg="#B6C5CF", font=("Roboto", 10, "bold"))
 h2 = ttk.Combobox(headings_frame, values=["Files from input folder"], font=("Roboto", 10, "bold"), width=30, state="disabled")
 h2.current(0)
-h3 = ttk.Combobox(headings_frame, values=["Sort by", "Name", "Last modified", "Created"], font=("Roboto", 10, "bold"), width=15, state="readonly")
+h3 = ttk.Combobox(headings_frame, values=["Sort by", "Name", "Date modified", "Date created"], font=("Roboto", 10, "bold"), width=15, state="readonly")
 h3.current(0)
 h4 = ttk.Combobox(headings_frame, values=["New name (Choose column)"], font=("Roboto", 10, "bold"), width=30, state="readonly")
 h4.current(0)
 
 h1.grid(row=0, column=0, padx=(10, 25), pady=5, sticky='ew')
 h2.grid(row=0, column=1, padx=10, pady=5, sticky='w')
-h3.grid(row=0, column=1, padx=10, pady=5, sticky='e')
-h4.grid(row=0, column=3, padx=(0, 20), pady=5, sticky='w')
+h3.grid(row=0, column=1, padx=40, pady=5, sticky='e')
+h4.grid(row=0, column=2, padx=(0, 20), pady=5, sticky='w')
 
 h3.bind("<<ComboboxSelected>>", lambda event: sort_name_by(tree))
 h4.bind("<<ComboboxSelected>>", update_table)
+
+#Reverse order button
+reverse_image = Image.open(os.path.join(ASSETS_DIR, "reverse_arrows.png"))
+
+flip_arrows = reverse_image.transpose(Image.FLIP_LEFT_RIGHT)
+flip_arrows = flip_arrows.transpose(Image.FLIP_TOP_BOTTOM)
+flip_arrows = flip_arrows.resize((20, 20), Image.LANCZOS)
+flip_arrows = ImageTk.PhotoImage(flip_arrows)
+
+reverse_image = reverse_image.resize((20, 20), Image.LANCZOS)
+reverse_image = ImageTk.PhotoImage(reverse_image)
+
+reverse_button = tk.Button(headings_frame, image=reverse_image, bg="#B6C5CF", command=lambda: reverse_order(tree, True))
+
+reverse_button.grid(row=0, column=1, padx=10, pady=5, sticky='e')
 
 # Table
 columns = ("index", "current_name", "new_name")
