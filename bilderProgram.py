@@ -45,61 +45,60 @@ style.configure("R.TButton",
 style.configure("Treeview", background="#ADBBC4", foreground="black", rowheight=25, fieldbackground="#ADBBC4")
 style.map('Treeview', background=[('selected', '#347083')])
 
-def run_renamer(csv_path_entry, images_folder_entry, output_folder_entry):
-    csv_path = csv_path_entry.get().strip()
+def run_renamer(tv, images_folder_entry, output_folder_entry):
     images_folder = images_folder_entry.get().strip()
     output_folder = output_folder_entry.get().strip()
 
-    col_idx_new = h4.current()
-    
-    if col_idx_new < 0:
-        messagebox.showwarning("Warning", "Please select columns for new names.")
+    if not images_folder or not output_folder:
+        messagebox.showwarning("Warning", "Please select both input and output folders.")
         return
-
-    try:
-        # Create output folder if one does not exist
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        with open(csv_path, mode='r', encoding='utf-8', newline='') as file:
-            reader = csv.reader(file)
-            data = list(reader)
-
-        count = 0
-
-        dir_list = os.listdir(images_folder)
-        sortedlist = natsorted(dir_list)
-
-        for index, row in enumerate(data[1:], start=1):
-            if index > len(sortedlist):
-                print(f"Index {index} exceeds the number of files in the images folder. Stopping process.")
-                break
-            
-            try:
-                target_filename = row[col_idx_new]
-
-                if not target_filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif')):
-                    target_filename += os.path.splitext(sortedlist[index-1])[1]
-
-                old_filename = sortedlist[index-1]
-
-                src = os.path.join(images_folder, old_filename)
-                dst = os.path.join(output_folder, target_filename)
-                
-                if images_folder != output_folder:
-                    shutil.copy2(src, dst)
-                else:
-                    os.rename(src, dst)
     
-                count += 1
+    if output_folder and not os.path.exists(output_folder):
+        try:
+            os.makedirs(output_folder)
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not create output folder: {str(e)}")
+            return
 
-            except IndexError:
-                continue
+    count = 0
+    ignore_texts = ["No file data", "No csv data", "Something wrong with the csv data"]
 
-        messagebox.showinfo("Done!", f"The process has completed. \n{count} photos were renamed.")
+    for item in tv.get_children(''):
+        old_filename = tv.set(item, column="current_name")
+        target_filename = tv.set(item, column="new_name")
 
-    except Exception as e:
-        messagebox.showerror("Error", f"Something went wrong: \n{str(e)}")
+        if old_filename in ignore_texts:
+            continue
+
+        if target_filename in ignore_texts:
+            target_filename = old_filename
+
+        if not target_filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif')):
+            extension = os.path.splitext(old_filename)
+            target_filename += extension[1]
+
+        old_path = os.path.join(images_folder, old_filename)
+
+        if output_folder:
+            new_path = os.path.join(output_folder, target_filename)
+        else:
+            new_path = os.path.join(images_folder, target_filename)
+
+        print(f"LÄSER: '{old_path}' ---> SKRIVER: '{new_path}'")
+
+        try:
+            if images_folder != output_folder:
+                shutil.copy2(old_path, new_path)
+            else:
+                os.rename(old_path, new_path)
+            count += 1
+
+        except FileNotFoundError:
+            messagebox.showerror("Error", f"File not found: {old_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error renaming '{old_filename}': {str(e)}")
+
+    messagebox.showinfo("Done!", f"The process has completed. \n{count} photos were renamed.")
 
 # Reset function
 def reset_all():
@@ -131,22 +130,17 @@ def select_in_folder():
     entry_img.delete(0, tk.END)
     entry_img.insert(0, path)
 
+    if not entry_out.get():
+        entry_out.delete(0, tk.END)
+        entry_out.insert(0, path)
+        messagebox.showinfo("Info", "Output folder set to the same as input folder since no output folder was chosen.")
+
     img_to_table(path, tree)
 
 def select_out_folder():
     path = filedialog.askdirectory()
     entry_out.delete(0, tk.END)
     entry_out.insert(0, path)
-
-def start_process():
-    csv = entry_csv
-    img = entry_img
-    out = entry_out
-
-    if csv and img and out:
-        run_renamer(csv, img, out)
-    else:
-        messagebox.showwarning("Warning", "Please choose all paths.")
 
 # Load table with data
 def load_table(csv_data, img_data, tree, col_idx_new = 1):
@@ -214,6 +208,7 @@ def img_to_table(folder_path, tree):
         data.append([file])
 
     update_table()
+    reset_reverse_button(tree)
 
     print("Table loaded with new folder data.")
 
@@ -614,23 +609,29 @@ def sort_name_by(tv):
 
     for index, item in enumerate(all_items):
         tv.set(item, column="current_name", value=final_list[index])
+
+    reset_reverse_button(tv)
     
 def reverse_order(tv, reverse):
     valid_items, invalid_items = retrieve_single_column(tv, "current_name")
     all_items = tv.get_children('')
 
-    valid_items.sort(reverse=reverse)
+    valid_items.reverse()
 
     final_list = valid_items + invalid_items
     for index, item in enumerate(all_items):
         tv.set(item, column="current_name", value=final_list[index])
 
     if reverse:
-        reverse_button.config(image=flip_arrows)
+        reverse_button.config(image=arrow_up)
     else:
-        reverse_button.config(image=reverse_image)
+        reverse_button.config(image=arrow_down)
 
     reverse_button.config(command=lambda: reverse_order(tv, not reverse))
+
+def reset_reverse_button(tv):
+    reverse_button.config(image=arrow_down)
+    reverse_button.config(command=lambda: reverse_order(tv, True))
 
 # Upper Frame
 upper_frame = tk.Frame(root, height=250, bg="#F0F0F0")
@@ -732,7 +733,7 @@ buttons_frame = tk.Frame(mid_frame, bg="#F0F0F0")
 buttons_frame.pack(pady=10)
 
 # Run-button
-run_button = tk.Button(buttons_frame, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=start_process)
+run_button = tk.Button(buttons_frame, text="Run renamer", bg="green", fg="white", font=("Roboto", 12, "bold"), command=lambda: run_renamer(tree, entry_img, entry_out))
 
 run_button.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
@@ -790,17 +791,17 @@ h3.bind("<<ComboboxSelected>>", lambda event: sort_name_by(tree))
 h4.bind("<<ComboboxSelected>>", update_table)
 
 #Reverse order button
-reverse_image = Image.open(os.path.join(ASSETS_DIR, "reverse_arrows.png"))
+arrow_up = Image.open(os.path.join(ASSETS_DIR, "reverse_arrows.png"))
 
-flip_arrows = reverse_image.transpose(Image.FLIP_LEFT_RIGHT)
-flip_arrows = flip_arrows.transpose(Image.FLIP_TOP_BOTTOM)
-flip_arrows = flip_arrows.resize((20, 20), Image.LANCZOS)
-flip_arrows = ImageTk.PhotoImage(flip_arrows)
+arrow_down = arrow_up.transpose(Image.FLIP_LEFT_RIGHT)
+arrow_down = arrow_down.transpose(Image.FLIP_TOP_BOTTOM)
+arrow_down = arrow_down.resize((20, 20), Image.LANCZOS)
+arrow_down = ImageTk.PhotoImage(arrow_down)
 
-reverse_image = reverse_image.resize((20, 20), Image.LANCZOS)
-reverse_image = ImageTk.PhotoImage(reverse_image)
+arrow_up = arrow_up.resize((20, 20), Image.LANCZOS)
+arrow_up = ImageTk.PhotoImage(arrow_up)
 
-reverse_button = tk.Button(headings_frame, image=reverse_image, bg="#B6C5CF", command=lambda: reverse_order(tree, True))
+reverse_button = tk.Button(headings_frame, image=arrow_down, bg="#B6C5CF", command=lambda: reverse_order(tree, True))
 
 reverse_button.grid(row=0, column=1, padx=10, pady=5, sticky='e')
 
